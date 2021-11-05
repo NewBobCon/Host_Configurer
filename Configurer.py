@@ -1,6 +1,10 @@
 import sys
-import os
+#import os
+#import subprocess
+import paramiko
 import ipaddress
+
+from paramiko.client import AutoAddPolicy
 
 #This function will ask for the host names as IP addresses then return a list of the hosts given to the program
 def getHosts():
@@ -29,7 +33,8 @@ def getCommands():
         commands.append(command) #add the command to the list
         command = sys.stdin.readline().strip() #read in a new command from the console
     print("Finished reading commands")
-    print(commands)        
+    print(commands)
+    return commands        
 
 
 #running the script:
@@ -37,11 +42,16 @@ hosts = getHosts() #obtain the hosts
 commands = getCommands() #obtain the commands
 #for every host in the hosts list, ssh into that host and run all the commands
 for host in hosts:
-    os.system("ssh chume@%s password" %host) #SSH into the host
+    #os.system("ssh chume@%s " %host) #SSH into the host
+    connection = paramiko.SSHClient()
+    connection.set_missing_host_key_policy(AutoAddPolicy)
+    connection.connect(host, username='eric', password='c')
     for command in commands: #For ever command in the commands variable
-        output = os.popen(command).read() #Run the command and catpture the output from the console
-        if output is "'%' invalid input error" or "SHELL PARSER FAILURE:" in output: #Check for errors from the output
+        #output = os.popen(command).read() #Run the command and catpture the output from the console
+        stdin, stdout, stderr = connection.exec_command(command)
+        if stdout == "'%' invalid input error" or stdout == "SHELL PARSER FAILURE:" in stdout: #Check for errors from the output
             print("Error: command failed to run")
             quit()
-print("Successfully completed all commands for ever host")
+        print(stdout)
+print("Successfully completed all commands for every host")
 
