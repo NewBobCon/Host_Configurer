@@ -41,20 +41,20 @@ def getCommands():
 hosts = getHosts() #obtain the hosts
 commands = getCommands() #obtain the commands
 #for every host in the hosts list, ssh into that host and run all the commands
-print("Type username: ")
+print("Input username: ")
 username = sys.stdin.readline().strip()
-print("Type password: ")
+print("Input password: ")
 password = sys.stdin.readline().strip()
 for host in hosts:
     #os.system("ssh chume@%s " %host) #SSH into the host
     connection = paramiko.SSHClient()
     connection.set_missing_host_key_policy(AutoAddPolicy)
     connection.connect(host, username=username, password=password, timeout=10)
-    connection.authorize(password=password)
-    for command in commands: #For ever command in the commands variable
+    connection.load_system_host_keys()
+    for command in commands: #For every command in the commands variable
         #output = os.popen(command).read() #Run the command and catpture the output from the console
         stdin, stdout, stderr = connection.exec_command(command)
-        if stdout == "'%' invalid input error" or stdout == "SHELL PARSER FAILURE:" in stdout: #Check for errors from the output
+        if "'%' invalid input error" in stdout or "SHELL PARSER FAILURE:" in stdout: #Check for errors from the output
             print("Error: command failed to run")
             quit()
         print(stdout)
